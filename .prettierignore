@@ -2,3 +2,10 @@ node_modules
 dist
 .env
 .editorconfig
+public
+.eslintrc.json
+.gitignore
+package-lock.json
+package.json
+.prettierrc
+eslint.config.mjs
