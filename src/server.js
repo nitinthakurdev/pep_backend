@@ -2,12 +2,14 @@ import { json, urlencoded } from 'express';
 import http from 'http';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 // local imports
 import { config } from './config/env.config.js';
 import { CustomError, NotFoundPageError } from './utils/CustomError.js';
-import { fileURLToPath } from 'url';
-import path from 'path';
+import { DBConnection } from './connections/MongoDb.connection.js';
+import MainRouter from './routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,9 +46,7 @@ function securityMiddleware(app) {
 }
 
 function RoutesHandler(app) {
-  app.get('/health', (_req, res) => {
-    return res.send('Server is healthy and ok');
-  });
+  app.use('/api/v1', MainRouter);
 }
 
 function ErrorHandle(app) {
@@ -70,15 +70,20 @@ function ErrorHandle(app) {
           '/templates/pages/NotFoundPage.html'
         );
         return res.sendFile(filePath);
-      } else {
+      }  else {
         res.status(error.statusCode).json(error.serializeErrors());
       }
     }
+    else if (error) {
+        return res.status(500).json({ error: error.message });
+      }
     next();
   });
 }
 
-function Connections() {}
+function Connections() {
+  DBConnection();
+}
 
 function StartServer(app) {
   const server = http.createServer(app);
