@@ -53,3 +53,29 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
     data: schoolData,
   });
 });
+
+
+export const getSchoolCodeAndClass = AsyncHandler(async (req, res) => {
+  const schoolData = await SchoolData.find();
+
+  const classSet = new Set();
+  const schoolCodeSet = new Set();
+  const sectionSet = new Set();
+
+  for (const item of schoolData) {
+    if (item.class) classSet.add(item.class);
+    if (item.school_code) schoolCodeSet.add(item.school_code);
+    if (item.section) sectionSet.add(item.section);
+  }
+
+  const std_class_arr = Array.from(classSet).sort();
+  const school_code_arr = Array.from(schoolCodeSet).sort();
+  const section_arr = Array.from(sectionSet).sort();
+
+  return res.status(StatusCodes.OK).json({
+    message: 'School code and class data retrieved successfully',
+    class: std_class_arr,
+    school_code: school_code_arr,
+    section:section_arr
+  });
+});

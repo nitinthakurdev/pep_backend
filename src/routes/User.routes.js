@@ -10,6 +10,6 @@ const routes = Router();
 
 routes.route('/register').post(Validater(RegistrationValidation), CreateUser);
 routes.route('/login').post(LoginUser);
-routes.route('/loged-in-user').get(Autherization,LogedInUser);
+routes.route('/loged-in-user').get(Autherization, LogedInUser);
 
 export default routes;

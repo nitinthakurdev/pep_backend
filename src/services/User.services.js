@@ -10,23 +10,12 @@ export const FindByUsername = async (username) => {
   return data;
 };
 
-export const FindByIdAndUpdate = async (id,data) => {
-  const result = await UserModel.findByIdAndUpdate(id,data,{new:true}).exec();
-  return result
-}
+export const FindByIdAndUpdate = async (id, data) => {
+  const result = await UserModel.findByIdAndUpdate(id, data, { new: true }).exec();
+  return result;
+};
 
-
-export const FindDataById = async(id) => {
-  const data = await UserModel.findById(id).select("-password -refresh_token");
-  return data
-}
-
-
-
-
-
-
-
-
-
-
+export const FindDataById = async (id) => {
+  const data = await UserModel.findById(id).select('-password -refresh_token');
+  return data;
+};

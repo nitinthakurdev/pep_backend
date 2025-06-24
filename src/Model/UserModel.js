@@ -2,8 +2,8 @@ import { hash } from 'bcrypt';
 import { Schema, model } from 'mongoose';
 
 const UserSchema = new Schema({
-  school_code: { type: String, required: true },
-  class: { type: String, required: true },
+  school_code: { type: String},
+  class: { type: String},
   username: { type: String, required: true, unique: true, trim: true },
   password: { type: String, required: true },
   profile: { type: String },
