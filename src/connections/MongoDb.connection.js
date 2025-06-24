@@ -8,10 +8,7 @@ export const DBConnection = async () => {
       const Connect = await mongoose.connect(config.MONGODB_URI, {
         dbName: 'Pathshala',
       });
-      console.log(
-        'MongoDB connected successfully and host is :',
-        Connect.connection.host
-      );
+      console.log('MongoDB connected successfully and host is :', Connect.connection.host);
       isConnected = true;
     } catch (error) {
       console.log('MongoDB connection error:', error);

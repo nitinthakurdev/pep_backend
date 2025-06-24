@@ -7,10 +7,7 @@ import { ExcelToJsonConverter } from '../utils/ExcelToJsonConverter.js';
 export const CreateSchoolData = AsyncHandler(async (req, res) => {
   const ExcelFile = req.file;
   if (!ExcelFile) {
-    throw new NotFoundError(
-      'Excel file not found',
-      'CreateSchoolData method ()'
-    );
+    throw new NotFoundError('Excel file not found', 'CreateSchoolData method ()');
   }
 
   // Read the Excel file buffer
@@ -23,7 +20,6 @@ export const CreateSchoolData = AsyncHandler(async (req, res) => {
     data: result,
   });
 });
-
 
 export const GetSchoolData = AsyncHandler(async (req, res) => {
   const { page, limit } = req.query;
@@ -40,15 +36,15 @@ export const GetSchoolData = AsyncHandler(async (req, res) => {
   });
 });
 
-
 export const FilterSchoolData = AsyncHandler(async (req, res) => {
-  const { school_code,std_class,section } = req.body;
+  const { school_code, std_class, section } = req.body;
   const { page, limit } = req.query;
   const pages = parseInt(page) || 1;
   const limits = (parseInt(limit) || 20) * pages;
 
-
-  const schoolData = await SchoolData.find({ $and:[{school_code},{section},{class:std_class}]})
+  const schoolData = await SchoolData.find({
+    $and: [{ school_code }, { section }, { class: std_class }],
+  })
     .sort({ _id: -1 })
     .limit(limits);
 

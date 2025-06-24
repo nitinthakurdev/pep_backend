@@ -31,10 +31,7 @@ function securityMiddleware(app) {
   app.use(urlencoded({ limit: '10mb', extended: true }));
   app.use(
     cors({
-      origin:
-        config.NODE_ENV !== 'development'
-          ? [config.APP_IP, config.CLIENT_URL]
-          : [config.LOCAL_APP_IP, config.LOCAL_CLIENT_URL],
+      origin: config.NODE_ENV !== 'development' ? [config.APP_IP, config.CLIENT_URL] : [config.LOCAL_APP_IP, config.LOCAL_CLIENT_URL],
       credentials: true,
       methods: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE', 'OPTION'],
     })
@@ -53,30 +50,21 @@ function ErrorHandle(app) {
   app.use('/', (req, _res, next) => {
     const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     // res.status(StatusCodes.NOT_FOUND).json({ message: 'The endpoint called does not exist.', url: fullUrl });
-    next(
-      new NotFoundPageError(
-        `the endpoint call does not exist url: ${fullUrl}`,
-        'main server file'
-      )
-    );
+    next(new NotFoundPageError(`the endpoint call does not exist url: ${fullUrl}`, 'main server file'));
   });
 
   app.use((error, _req, res, next) => {
     if (error instanceof CustomError) {
       // console.log('error', `GatewayService ${error.comingFrom}:`, error);
       if (error.statusCode === 404 && error.status === 'page') {
-        const filePath = path.join(
-          __dirname,
-          '/templates/pages/NotFoundPage.html'
-        );
+        const filePath = path.join(__dirname, '/templates/pages/NotFoundPage.html');
         return res.sendFile(filePath);
-      }  else {
+      } else {
         res.status(error.statusCode).json(error.serializeErrors());
       }
+    } else if (error) {
+      return res.status(500).json({ error: error.message });
     }
-    else if (error) {
-        return res.status(500).json({ error: error.message });
-      }
     next();
   });
 }

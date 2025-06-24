@@ -10,9 +10,7 @@ export const ExcelToJsonConverter = (filePathOrFile) => {
     } else if (filePathOrFile?.buffer) {
       workbook = XLSX.read(filePathOrFile.buffer, { type: 'buffer' });
     } else {
-      throw new Error(
-        'Invalid input: must be file path or file object with buffer'
-      );
+      throw new Error('Invalid input: must be file path or file object with buffer');
     }
 
     const sheetName = workbook.SheetNames?.[0];
