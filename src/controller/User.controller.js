@@ -17,7 +17,7 @@ export const CreateUser = AsyncHandler(async (req, res) => {
   const data = req.body;
 
   const exist = await FindByUsername(data.username);
-  
+
   if (exist) {
     throw new NotFoundError('Username already Register', 'CreateUser method ()');
   }

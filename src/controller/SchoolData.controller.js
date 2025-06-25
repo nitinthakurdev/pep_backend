@@ -54,7 +54,6 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
   });
 });
 
-
 export const getSchoolCodeAndClass = AsyncHandler(async (req, res) => {
   const schoolData = await SchoolData.find();
 
@@ -76,6 +75,6 @@ export const getSchoolCodeAndClass = AsyncHandler(async (req, res) => {
     message: 'School code and class data retrieved successfully',
     class: std_class_arr,
     school_code: school_code_arr,
-    section:section_arr
+    section: section_arr,
   });
 });
