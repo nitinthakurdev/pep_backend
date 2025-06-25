@@ -1,7 +1,6 @@
-import { StatusCodes } from "http-status-codes";
-import { AttendenceModel } from "../Model/Attendence.js";
-import { AsyncHandler } from "../utils/AsyncHandler.js";
-
+import { StatusCodes } from 'http-status-codes';
+import { AttendenceModel } from '../Model/Attendence.js';
+import { AsyncHandler } from '../utils/AsyncHandler.js';
 
 export const MarkAttendance = AsyncHandler(async (req, res) => {
   const { studentId, isPresent } = req.body;
@@ -23,4 +22,4 @@ export const MarkAttendance = AsyncHandler(async (req, res) => {
     message: 'Attendance marked successfully',
     data: attendance,
   });
-})
+});
