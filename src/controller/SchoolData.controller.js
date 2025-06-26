@@ -99,10 +99,11 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
 
   const schoolData = await SchoolData.find({
     $and: [{ school_code: req?.currentUser?.school_code }, { section }, { class: req?.currentUser?.class }],
-  })
-    .select('student_name father_name')
+  }).select('student_name father_name')
     .sort({ _id: -1 })
     .limit(limits);
+
+      console.log(schoolData);
 
   return res.status(StatusCodes.OK).json({
     message: 'Filtered school data retrieved successfully',
