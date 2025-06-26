@@ -80,9 +80,9 @@ export const getSchoolCodeAndClass = AsyncHandler(async (req, res) => {
 });
 
 export const GetSchoolSections = AsyncHandler(async (req, res) => {
-  const data = await SchoolData.find({$and:[{school_code:req?.currentUser?.school_code}, {class:req?.currentUser?.class}]});
+  const data = await SchoolData.find({ $and: [{ school_code: req?.currentUser?.school_code }, { class: req?.currentUser?.class }] });
   const sectionSet = new Set();
-   for (const item of data) {
+  for (const item of data) {
     if (item.section) sectionSet.add(item.section);
   }
   const section_arr = Array.from(sectionSet).sort();
@@ -90,17 +90,17 @@ export const GetSchoolSections = AsyncHandler(async (req, res) => {
     message: 'school Section data',
     data: section_arr,
   });
-})
+});
 
 export const FilterDataForSchool = AsyncHandler(async (req, res) => {
-  const { section } = req.query;
-  const { page, limit } = req.query;
+  const { section, page, limit } = req.query;
   const pages = parseInt(page) || 1;
   const limits = (parseInt(limit) || 20) * pages;
 
   const schoolData = await SchoolData.find({
-    $and: [{ school_code:req?.currentUser?.school_code }, { section }, { class: req?.currentUser?.class }],
-  }).select("school_name father_name")
+    $and: [{ school_code: req?.currentUser?.school_code }, { section }, { class: req?.currentUser?.class }],
+  })
+    .select('student_name father_name')
     .sort({ _id: -1 })
     .limit(limits);
 
@@ -109,4 +109,3 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     data: schoolData,
   });
 });
-

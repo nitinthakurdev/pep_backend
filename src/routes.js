@@ -7,7 +7,7 @@ import { Autherization } from './middleware/Authentication.js';
 
 const router = Router();
 
-router.use('/school-data',Autherization, SchoolData);
+router.use('/school-data', Autherization, SchoolData);
 router.use('/user', UserRoutes);
 
 export default router;
