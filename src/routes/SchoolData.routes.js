@@ -6,7 +6,7 @@ const router = Router();
 
 router.route('/create').post(upload.single('excel'), CreateSchoolData);
 router.route('/get').get(GetSchoolData);
-router.route('/get-filter-data').get(FilterSchoolData);
+router.route('/get-filter-data').post(FilterSchoolData);
 router.route('/get-code-class').get(getSchoolCodeAndClass);
 router.route('/get-filtered-section').get(GetSchoolSections);
 router.route('/get-School-data-section').get(FilterDataForSchool);

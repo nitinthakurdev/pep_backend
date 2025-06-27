@@ -44,7 +44,7 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
 
   const schoolData = await SchoolData.find({
     $and: [{ school_code }, { section }, { class: std_class }],
-  })
+  }).select("school_code student_name class section father_name")
     .sort({ _id: -1 })
     .limit(limits);
 
