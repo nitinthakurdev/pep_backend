@@ -5,7 +5,6 @@ import { AsyncHandler } from '../utils/AsyncHandler.js';
 export const MarkAttendance = AsyncHandler(async (req, res) => {
   const attendanceData = req.body;
 
-
   await AttendenceModel.create(attendanceData);
 
   return res.status(StatusCodes.CREATED).json({

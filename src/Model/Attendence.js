@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose';
 
 const AttendenceSchema = new Schema(
   {
-    studentId: { type: Schema.Types.ObjectId, ref: 'SchoolData',required:true },
+    studentId: { type: Schema.Types.ObjectId, ref: 'SchoolData', required: true },
     status: { type: String, required: true },
   },
   { timestamps: true }

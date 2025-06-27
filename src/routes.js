@@ -8,8 +8,8 @@ import AttendanceRoutes from './routes/Attendance.routes.js';
 
 const router = Router();
 
-router.use('/school-data',Autherization, SchoolData);
+router.use('/school-data',Autherization,SchoolData);
 router.use('/user', UserRoutes);
-router.use("/attendance",AttendanceRoutes)
+router.use('/attendance', AttendanceRoutes);
 
 export default router;

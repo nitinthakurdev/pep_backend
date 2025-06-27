@@ -57,25 +57,39 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
 export const getSchoolCodeAndClass = AsyncHandler(async (req, res) => {
   const schoolData = await SchoolData.find();
 
-  const classSet = new Set();
-  const schoolCodeSet = new Set();
-  const sectionSet = new Set();
+  const result = {};
 
   for (const item of schoolData) {
-    if (item.class) classSet.add(item.class);
-    if (item.school_code) schoolCodeSet.add(item.school_code);
-    if (item.section) sectionSet.add(item.section);
+    const schoolCode = item.school_code;
+    const className = item.class;
+    const sectionName = item.section;
+
+    if (!schoolCode || !className || !sectionName) continue;
+
+    if (!result[schoolCode]) {
+      result[schoolCode] = {};
+    }
+
+    if (!result[schoolCode][className]) {
+      result[schoolCode][className] = new Set();
+    }
+
+    result[schoolCode][className].add(sectionName);
   }
 
-  const std_class_arr = Array.from(classSet).sort();
-  const school_code_arr = Array.from(schoolCodeSet).sort();
-  const section_arr = Array.from(sectionSet).sort();
+  // Convert Sets to Arrays for JSON response
+  const formattedResult = {};
+
+  for (const school in result) {
+    formattedResult[school] = {};
+    for (const cls in result[school]) {
+      formattedResult[school][cls] = Array.from(result[school][cls]).sort();
+    }
+  }
 
   return res.status(StatusCodes.OK).json({
-    message: 'School code and class data retrieved successfully',
-    class: std_class_arr,
-    school_code: school_code_arr,
-    section: section_arr,
+    message: 'School-wise class and section data retrieved successfully',
+    data: formattedResult,
   });
 });
 
@@ -99,11 +113,12 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
 
   const schoolData = await SchoolData.find({
     $and: [{ school_code: req?.currentUser?.school_code }, { section }, { class: req?.currentUser?.class }],
-  }).select('student_name father_name')
+  })
+    .select('student_name father_name')
     .sort({ _id: -1 })
     .limit(limits);
 
-      console.log(schoolData);
+  console.log(schoolData);
 
   return res.status(StatusCodes.OK).json({
     message: 'Filtered school data retrieved successfully',
