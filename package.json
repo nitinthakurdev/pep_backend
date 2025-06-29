@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint .",
     "format": "prettier --write .",
-    "start": "npm run lint && node src.index.js",
+    "start": "node src.index.js",
     "dev": "npm run lint && npm run format && nodemon src/index.js"
   },
   "keywords": [],
