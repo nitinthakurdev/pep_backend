@@ -4,9 +4,10 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import express from 'express';
 
 // local imports
-import { config } from './config/env.config.js';
+// import { config } from './config/env.config.js';
 import { CustomError, NotFoundPageError } from './utils/CustomError.js';
 import { DBConnection } from './connections/MongoDb.connection.js';
 import MainRouter from './routes.js';
@@ -25,17 +26,19 @@ export function Start(app) {
   Connections();
 }
 
+// cors configration
+
+// {
+//       origin: config.NODE_ENV !== 'development' ? [config.APP_IP, config.CLIENT_URL] : [config.LOCAL_APP_IP, config.LOCAL_CLIENT_URL],
+//       credentials: true,
+//       methods: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE', 'OPTION'],
+//     }
+
 function securityMiddleware(app) {
   app.set('trust proxy', true);
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ limit: '10mb', extended: true }));
-  app.use(
-    cors({
-      origin: config.NODE_ENV !== 'development' ? [config.APP_IP, config.CLIENT_URL] : [config.LOCAL_APP_IP, config.LOCAL_CLIENT_URL],
-      credentials: true,
-      methods: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE', 'OPTION'],
-    })
-  );
+  app.use(cors());
   app.use(cookieParser());
   app.get('/health', (_req, res) => {
     return res.send('Server is healthy and ok');
@@ -43,6 +46,7 @@ function securityMiddleware(app) {
 }
 
 function RoutesHandler(app) {
+  app.use('/exports', express.static(path.join(__dirname, '../public', 'exports')));
   app.use('/api/v1', MainRouter);
 }
 
