@@ -145,42 +145,29 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        from: 'users',
+        from: 'feedbacks',
         localField: 'school_code',
         foreignField: 'school_code',
-        as: 'creator',
+        as: 'feedback',
         pipeline: [
           {
             $match: {
+              school_code,
               class: std_class,
-            },
-          },
-          {
-            $lookup: {
-              from: 'feedbacks',
-              foreignField: 'creator',
-              localField: '_id',
-              as: 'feedback',
-            },
-          },
-          {
-            $addFields: {
-              feedback: { $arrayElemAt: ['$feedback', 0] },
-            },
-          },
-          {
-            $project: {
-              _id: 1,
-              feedback: 1,
-            },
-          },
-        ],
-      },
+              section,
+              createdAt: {
+                $gte: startOfDay,
+                $lte: endOfDay,
+              },
+            }
+          }
+        ]
+      }
     },
     {
       $addFields: {
         attendanceData: { $arrayElemAt: ['$attendanceData', 0] },
-        creator: { $arrayElemAt: ['$creator', 0] },
+        feedback: { $arrayElemAt: ['$feedback', 0] },
       },
     },
     {
@@ -191,10 +178,11 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
         section: 1,
         father_name: 1,
         attendanceData: 1,
-        creator: 1,
+        feedback: 1,
       },
     },
   ]);
+
 
   const totalData = TotalCount.length;
 
@@ -207,7 +195,7 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
     totalData,
     totalPresent,
     totalAbsent,
-    feedback: TotalCount[0]?.creator?.feedback,
+    feedback: TotalCount[0]?.feedback,
   });
 });
 
@@ -268,29 +256,27 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
   const pages = parseInt(page) || 1;
   const limits = (parseInt(limit) || 20) * pages;
 
-
   const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0); 
+  startOfToday.setHours(0, 0, 0, 0);
 
   const endOfToday = new Date();
   endOfToday.setHours(23, 59, 59, 999);
 
-
   const schoolData = await SchoolData.aggregate([
     {
-      $match:{
+      $match: {
         school_code: req?.currentUser?.school_code,
         section,
         class: req?.currentUser?.class,
-      }
+      },
     },
     {
-      $lookup:{
+      $lookup: {
         from: 'attendences',
         localField: '_id',
         foreignField: 'studentId',
         as: 'attendanceData',
-        pipeline:[
+        pipeline: [
           {
             $match: {
               createdAt: {
@@ -305,9 +291,9 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
               status: 1,
               createdAt: 1,
             },
-          }
-        ]
-      }
+          },
+        ],
+      },
     },
     {
       $addFields: {
@@ -318,11 +304,11 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     .sort({ _id: -1 })
     .limit(limits);
 
-    const newData = schoolData.map((item)=> ({
-      student_name:item.student_name,
-      father_name: item.father_name,
-      status: item?.attendanceData?.status
-    }))
+  const newData = schoolData.map((item) => ({
+    student_name: item.student_name,
+    father_name: item.father_name,
+    status: item?.attendanceData?.status,
+  }));
 
   return res.status(StatusCodes.OK).json({
     message: 'Filtered school data retrieved successfully',
@@ -330,17 +316,23 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
   });
 });
 
+
+
 export const DownloadSchoolData = AsyncHandler(async (req, res) => {
   const { school_code, std_class, section, date } = req.body;
 
-  console.log(date);
+  const selectedDate = new Date(date);
+  const startOfDay = new Date(selectedDate);
+  startOfDay.setUTCHours(0, 0, 0, 0);
+  const endOfDay = new Date(selectedDate);
+  endOfDay.setUTCHours(23, 59, 59, 999);
 
   const schoolData = await SchoolData.aggregate([
     {
       $match: {
         school_code,
-        section,
         class: std_class,
+        section,
       },
     },
     {
@@ -349,7 +341,54 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
         localField: '_id',
         foreignField: 'studentId',
         as: 'attendanceData',
-        pipeline: [{ $project: { studentId: 1, status: 1, createdAt: 1 } }],
+        pipeline: [
+          {
+            $match: {
+              createdAt: { $gte: startOfDay, $lte: endOfDay },
+            },
+          },
+          {
+            $project: {
+              studentId: 1,
+              status: 1,
+              createdAt: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: 'feedbacks',
+        localField: 'school_code',
+        foreignField: 'school_code',
+        as: 'feedback',
+        pipeline: [
+          {
+            $match: {
+              school_code,
+              class: std_class,
+              section,
+              createdAt: { $gte: startOfDay, $lte: endOfDay },
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        attendanceData: { $arrayElemAt: ['$attendanceData', 0] },
+      },
+    },
+    {
+      $project: {
+        school_code: 1,
+        student_name: 1,
+        class: 1,
+        section: 1,
+        father_name: 1,
+        attendanceData: 1,
+        feedback: 1,
       },
     },
   ]);
@@ -358,54 +397,49 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
     return res.status(StatusCodes.NOT_FOUND).json({ message: 'No data found' });
   }
 
-  const allDatesSet = new Set();
-  schoolData.forEach((student) => {
-    student.attendanceData.forEach((att) => {
-      const date = new Date(att.createdAt).toISOString().split('T')[0];
-      allDatesSet.add(date);
-    });
-  });
+  // ✅ Extract unique feedback (assuming same for all students)
+  const firstFeedback = schoolData.find(s => s.feedback && s.feedback.length > 0)?.feedback[0];
 
-  const allDates = Array.from(allDatesSet).sort();
+  // ✅ Prepare Excel Rows
+  const excelRows = [];
 
-  const excelRows = schoolData.map((student) => {
-    const row = {
+  // ✅ Add Feedback info (once at top)
+  if (firstFeedback) {
+    excelRows.push({ Field: 'Feedback', Value: firstFeedback.feedback ? 'Yes' : 'No' });
+    excelRows.push({ Field: 'Description', Value: firstFeedback.description || '' });
+    excelRows.push({});  // Empty row separator
+  }
+
+  // ✅ Add student-wise attendance rows
+  schoolData.forEach((student,index) => {
+    excelRows.push({
+      Sr_No: index + 1,
       Name: student.student_name,
-      SRN: student.srn,
       Class: student.class,
       Section: student.section,
-      School: student.school_name,
       Father: student.father_name,
-      Mother: student.mother_name,
-    };
-
-    const attendanceMap = {};
-    student.attendanceData.forEach((att) => {
-      const date = new Date(att.createdAt).toISOString().split('T')[0];
-      attendanceMap[date] = att.status;
+      Attendance: student.attendanceData?.status,
     });
-
-    allDates.forEach((date) => {
-      row[date] = attendanceMap[date] || 'absent';
-    });
-
-    return row;
   });
 
-  const ws = XLSX.utils.json_to_sheet(excelRows);
+  // ✅ Generate Excel
+  const ws = XLSX.utils.json_to_sheet(excelRows, { skipHeader: false });
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
 
   const filename = `attendance_${uuidv4()}.xlsx`;
   const filePath = path.join('public', 'exports', filename);
-  console.log(filePath);
 
   XLSX.writeFile(wb, filePath);
 
   const fileUrl = `${req.protocol}://${req.get('host')}/exports/${filename}`;
+
   res.status(StatusCodes.OK).json({ downloadUrl: fileUrl });
-  fs.unlinkSync(filePath);
+
+  // ✅ Optional: Delete file later after sending link
+  // fs.unlinkSync(filePath);
 });
+
 
 export const DashboardData = AsyncHandler(async (req, res) => {
   const TotalSchool = await SchoolData.find({});
