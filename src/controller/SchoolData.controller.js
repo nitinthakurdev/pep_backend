@@ -90,7 +90,7 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
         ],
       },
     },
-    
+
     {
       $addFields: {
         attendanceData: { $arrayElemAt: ['$attendanceData', 0] },
@@ -144,38 +144,38 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
       },
     },
     {
-      $lookup:{
-        from:"users",
-        localField:"school_code",
-        foreignField:"school_code",
-        as:"creator",
-        pipeline:[
+      $lookup: {
+        from: 'users',
+        localField: 'school_code',
+        foreignField: 'school_code',
+        as: 'creator',
+        pipeline: [
           {
-            $match:{
-              class:std_class
-            }
+            $match: {
+              class: std_class,
+            },
           },
           {
-            $lookup:{
-              from:"feedbacks",
-              foreignField:"creator",
-              localField:"_id",
-              as:"feedback"
-            }
+            $lookup: {
+              from: 'feedbacks',
+              foreignField: 'creator',
+              localField: '_id',
+              as: 'feedback',
+            },
           },
           {
-            $addFields:{
+            $addFields: {
               feedback: { $arrayElemAt: ['$feedback', 0] },
-            }
+            },
           },
           {
-            $project:{
-              _id:1,
-              feedback:1
-            }
-          }
-        ]
-      }
+            $project: {
+              _id: 1,
+              feedback: 1,
+            },
+          },
+        ],
+      },
     },
     {
       $addFields: {
@@ -191,7 +191,7 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
         section: 1,
         father_name: 1,
         attendanceData: 1,
-        creator:1
+        creator: 1,
       },
     },
   ]);
@@ -207,7 +207,7 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
     totalData,
     totalPresent,
     totalAbsent,
-    feedback:TotalCount[0]?.creator?.feedback
+    feedback: TotalCount[0]?.creator?.feedback,
   });
 });
 
@@ -268,21 +268,72 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
   const pages = parseInt(page) || 1;
   const limits = (parseInt(limit) || 20) * pages;
 
-  const schoolData = await SchoolData.find({
-    $and: [{ school_code: req?.currentUser?.school_code }, { section }, { class: req?.currentUser?.class }],
-  })
-    .select('student_name father_name')
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0); 
+
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+
+
+  const schoolData = await SchoolData.aggregate([
+    {
+      $match:{
+        school_code: req?.currentUser?.school_code,
+        section,
+        class: req?.currentUser?.class,
+      }
+    },
+    {
+      $lookup:{
+        from: 'attendences',
+        localField: '_id',
+        foreignField: 'studentId',
+        as: 'attendanceData',
+        pipeline:[
+          {
+            $match: {
+              createdAt: {
+                $gte: startOfToday,
+                $lte: endOfToday,
+              },
+            },
+          },
+          {
+            $project: {
+              studentId: 1,
+              status: 1,
+              createdAt: 1,
+            },
+          }
+        ]
+      }
+    },
+    {
+      $addFields: {
+        attendanceData: { $arrayElemAt: ['$attendanceData', 0] },
+      },
+    },
+  ])
     .sort({ _id: -1 })
     .limit(limits);
 
+    const newData = schoolData.map((item)=> ({
+      student_name:item.student_name,
+      father_name: item.father_name,
+      status: item?.attendanceData?.status
+    }))
+
   return res.status(StatusCodes.OK).json({
     message: 'Filtered school data retrieved successfully',
-    data: schoolData,
+    data: newData,
   });
 });
 
 export const DownloadSchoolData = AsyncHandler(async (req, res) => {
-  const { school_code, std_class, section } = req.body;
+  const { school_code, std_class, section, date } = req.body;
+
+  console.log(date);
 
   const schoolData = await SchoolData.aggregate([
     {
@@ -356,25 +407,22 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
   fs.unlinkSync(filePath);
 });
 
-export const DashboardData = AsyncHandler(async (req,res) => {
-
+export const DashboardData = AsyncHandler(async (req, res) => {
   const TotalSchool = await SchoolData.find({});
-  const TotalUser = await UserModel.find({role:{$ne:"Admin"}}).countDocuments();
+  const TotalUser = await UserModel.find({ role: { $ne: 'Admin' } }).countDocuments();
 
-  const totalSchool = []
-  const obj = {}
+  const totalSchool = [];
+  const obj = {};
 
-  for(let item of TotalSchool){
-    if(!obj[item.school_code]){
+  for (let item of TotalSchool) {
+    if (!obj[item.school_code]) {
       obj[item.school_code] = true;
-      totalSchool.push(item.school_code)
+      totalSchool.push(item.school_code);
     }
   }
 
   return res.status(StatusCodes.OK).json({
-    totalSchool:totalSchool.length,
+    totalSchool: totalSchool.length,
     TotalUser,
-  })
-
-
+  });
 });

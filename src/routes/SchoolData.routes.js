@@ -1,5 +1,14 @@
 import { Router } from 'express';
-import { CreateSchoolData, DashboardData, DownloadSchoolData, FilterDataForSchool, FilterSchoolData, getSchoolCodeAndClass, GetSchoolData, GetSchoolSections } from '../controller/SchoolData.controller.js';
+import {
+  CreateSchoolData,
+  DashboardData,
+  DownloadSchoolData,
+  FilterDataForSchool,
+  FilterSchoolData,
+  getSchoolCodeAndClass,
+  GetSchoolData,
+  GetSchoolSections,
+} from '../controller/SchoolData.controller.js';
 import { upload } from '../config/multer.config.js';
 
 const router = Router();
