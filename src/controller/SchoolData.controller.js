@@ -305,7 +305,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     .limit(limits);
 
   const newData = schoolData.map((item) => ({
-    _id:item._id,
+    _id: item._id,
     student_name: item.student_name,
     father_name: item.father_name,
     status: item?.attendanceData?.status,
@@ -316,8 +316,6 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     data: newData,
   });
 });
-
-
 
 export const DownloadSchoolData = AsyncHandler(async (req, res) => {
   const { school_code, std_class, section, date } = req.body;
@@ -398,11 +396,18 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
     return res.status(StatusCodes.NOT_FOUND).json({ message: 'No data found' });
   }
 
+  // ✅ Extract first feedback only
+  const firstFeedback = schoolData.find(s => s.feedback && s.feedback.length > 0)?.feedback[0];
+
   // ✅ Prepare Excel Rows
   const excelRows = [];
 
+  if (firstFeedback) {
+    excelRows.push({ Field: 'Feedback', Value: firstFeedback.description || '' });
+    excelRows.push({}); // empty row
+  }
+
   schoolData.forEach((student, index) => {
-    const feedbackDescription = student.feedback?.[0]?.description || '';
     excelRows.push({
       Sr_No: index + 1,
       Name: student.student_name,
@@ -410,7 +415,6 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
       Section: student.section,
       Father: student.father_name,
       Attendance: student.attendanceData?.status || '',
-      Feedback: feedbackDescription,
     });
   });
 
