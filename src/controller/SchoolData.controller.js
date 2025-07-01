@@ -397,28 +397,19 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
     return res.status(StatusCodes.NOT_FOUND).json({ message: 'No data found' });
   }
 
-  // ✅ Extract unique feedback (assuming same for all students)
-  const firstFeedback = schoolData.find(s => s.feedback && s.feedback.length > 0)?.feedback[0];
-
   // ✅ Prepare Excel Rows
   const excelRows = [];
 
-  // ✅ Add Feedback info (once at top)
-  if (firstFeedback) {
-    excelRows.push({ Field: 'Feedback', Value: firstFeedback.feedback ? 'Yes' : 'No' });
-    excelRows.push({ Field: 'Description', Value: firstFeedback.description || '' });
-    excelRows.push({});  // Empty row separator
-  }
-
-  // ✅ Add student-wise attendance rows
-  schoolData.forEach((student,index) => {
+  schoolData.forEach((student, index) => {
+    const feedbackDescription = student.feedback?.[0]?.description || '';
     excelRows.push({
       Sr_No: index + 1,
       Name: student.student_name,
       Class: student.class,
       Section: student.section,
       Father: student.father_name,
-      Attendance: student.attendanceData?.status,
+      Attendance: student.attendanceData?.status || '',
+      Feedback: feedbackDescription,
     });
   });
 
@@ -435,9 +426,6 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
   const fileUrl = `${req.protocol}://${req.get('host')}/exports/${filename}`;
 
   res.status(StatusCodes.OK).json({ downloadUrl: fileUrl });
-
-  // ✅ Optional: Delete file later after sending link
-  // fs.unlinkSync(filePath);
 });
 
 
