@@ -45,6 +45,7 @@ export const GetSchoolData = AsyncHandler(async (req, res) => {
 
 export const FilterSchoolData = AsyncHandler(async (req, res) => {
   const { school_code, std_class, section, date } = req.body;
+
   const { page, limit } = req.query;
   const pages = parseInt(page) || 1;
   const limits = (parseInt(limit) || 20) * pages;
@@ -152,7 +153,6 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
         pipeline: [
           {
             $match: {
-              school_code,
               class: std_class,
               section,
               createdAt: {
@@ -391,7 +391,6 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
     },
   ]);
 
-
   if (!schoolData.length) {
     return res.status(StatusCodes.NOT_FOUND).json({ message: 'No data found' });
   }
@@ -416,7 +415,7 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
   excelRows.push({});
 
   // ✅ Add feedback at the bottom, highlighted
-  const firstFeedback = schoolData.find(s => s.feedback && s.feedback.length > 0)?.feedback[0];
+  const firstFeedback = schoolData.find((s) => s.feedback && s.feedback.length > 0)?.feedback[0];
   if (firstFeedback) {
     excelRows.push({
       '*** Feedback ***': firstFeedback.description || '',
@@ -437,8 +436,6 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
 
   res.status(StatusCodes.OK).json({ downloadUrl: fileUrl });
 });
-
-
 
 export const DashboardData = AsyncHandler(async (req, res) => {
   const TotalSchool = await SchoolData.find({});
