@@ -305,6 +305,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     .limit(limits);
 
   const newData = schoolData.map((item) => ({
+    _id:item._id,
     student_name: item.student_name,
     father_name: item.father_name,
     status: item?.attendanceData?.status,
