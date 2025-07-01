@@ -159,10 +159,10 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
                 $gte: startOfDay,
                 $lte: endOfDay,
               },
-            }
-          }
-        ]
-      }
+            },
+          },
+        ],
+      },
     },
     {
       $addFields: {
@@ -182,7 +182,6 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
       },
     },
   ]);
-
 
   const totalData = TotalCount.length;
 
@@ -392,31 +391,37 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
     },
   ]);
 
+
   if (!schoolData.length) {
     return res.status(StatusCodes.NOT_FOUND).json({ message: 'No data found' });
   }
 
-  // ✅ Extract first feedback only
-  const firstFeedback = schoolData.find(s => s.feedback && s.feedback.length > 0)?.feedback[0];
-
   // ✅ Prepare Excel Rows
   const excelRows = [];
 
-  if (firstFeedback) {
-    excelRows.push({ Field: 'Feedback', Value: firstFeedback.description || '' });
-    excelRows.push({}); // empty row
-  }
-
+  // ✅ Add student rows first
   schoolData.forEach((student, index) => {
     excelRows.push({
       Sr_No: index + 1,
       Name: student.student_name,
+      School_Code: student.school_code,
       Class: student.class,
       Section: student.section,
       Father: student.father_name,
       Attendance: student.attendanceData?.status || '',
     });
   });
+
+  // ✅ Add empty row for spacing before feedback
+  excelRows.push({});
+
+  // ✅ Add feedback at the bottom, highlighted
+  const firstFeedback = schoolData.find(s => s.feedback && s.feedback.length > 0)?.feedback[0];
+  if (firstFeedback) {
+    excelRows.push({
+      '*** Feedback ***': firstFeedback.description || '',
+    });
+  }
 
   // ✅ Generate Excel
   const ws = XLSX.utils.json_to_sheet(excelRows, { skipHeader: false });
@@ -432,6 +437,7 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
 
   res.status(StatusCodes.OK).json({ downloadUrl: fileUrl });
 });
+
 
 
 export const DashboardData = AsyncHandler(async (req, res) => {
