@@ -8,6 +8,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import { UserModel } from '../Model/UserModel.js';
+import { FeedBackModel } from '../Model/Feedback.js';
 
 export const CreateSchoolData = AsyncHandler(async (req, res) => {
   const ExcelFile = req.file;
@@ -376,6 +377,7 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
     {
       $addFields: {
         attendanceData: { $arrayElemAt: ['$attendanceData', 0] },
+        feedback: { $arrayElemAt: ['$feedback', 0] },
       },
     },
     {
@@ -395,10 +397,9 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
     return res.status(StatusCodes.NOT_FOUND).json({ message: 'No data found' });
   }
 
-  // ✅ Prepare Excel Rows
   const excelRows = [];
 
-  // ✅ Add student rows first
+  // ✅ 1. Student Attendance Table
   schoolData.forEach((student, index) => {
     excelRows.push({
       Sr_No: index + 1,
@@ -411,35 +412,51 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
     });
   });
 
-  // ✅ Add empty row for spacing before feedback
+  // ✅ 2. Blank row between tables
   excelRows.push({});
+  excelRows.push({ '*** फीडबैक रिपोर्ट ***': '' });
 
-  // ✅ Add feedback at the bottom, highlighted
-  const firstFeedback = schoolData.find((s) => s.feedback && s.feedback.length > 0)?.feedback[0];
-  if (firstFeedback) {
+  // ✅ 3. Feedback Table with Hindi Questions as Headers
+  const feedback = schoolData.find(s => s.feedback)?.feedback;
+
+  if (feedback) {
     excelRows.push({
-      '*** Feedback ***': firstFeedback.description || '',
+      '1. आज की कक्षा में पीस एजुकेशन प्रोग्राम की कौन-सी थीम सुनाई गई?': feedback.theme || '',
+      '2. कक्षा का वातावरण आपको कैसा लगा?': feedback.environment || '',
+      '3. क्या सत्र के दौरान छात्रों की भागीदारी सक्रिय थी?': feedback.participation || '',
+      '4. कक्षा के दौरान ऑडियो और वीडियो की गुणवत्ता कैसी थी?': feedback.audioVideo || '',
+      '5. अतिरिक्त फीडबैक': feedback.additionalFeedback || '',
     });
+  } else {
+    excelRows.push({ 'फीडबैक': 'उपलब्ध नहीं है' });
   }
 
-  // ✅ Generate Excel
+  // ✅ Create Excel workbook
   const ws = XLSX.utils.json_to_sheet(excelRows, { skipHeader: false });
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+  XLSX.utils.book_append_sheet(wb, ws, 'School_Report');
 
+  // ✅ Write Excel file
   const filename = `attendance_${uuidv4()}.xlsx`;
   const filePath = path.join('public', 'exports', filename);
-
   XLSX.writeFile(wb, filePath);
 
   const fileUrl = `${req.protocol}://${req.get('host')}/exports/${filename}`;
-
   res.status(StatusCodes.OK).json({ downloadUrl: fileUrl });
 });
+
+
 
 export const DashboardData = AsyncHandler(async (req, res) => {
   const TotalSchool = await SchoolData.find({});
   const TotalUser = await UserModel.find({ role: { $ne: 'Admin' } }).countDocuments();
+  const TotalReport = await FeedBackModel.countDocuments();
+  const TodayReport = await FeedBackModel.find({
+    createdAt: {
+      $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+      $lte: new Date(new Date().setHours(23, 59, 59, 999)),
+    },
+  }).countDocuments();  
 
   const totalSchool = [];
   const obj = {};
@@ -454,5 +471,7 @@ export const DashboardData = AsyncHandler(async (req, res) => {
   return res.status(StatusCodes.OK).json({
     totalSchool: totalSchool.length,
     TotalUser,
+    TodayReport,
+    TotalReport,
   });
 });
