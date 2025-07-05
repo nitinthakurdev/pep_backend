@@ -311,9 +311,14 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     status: item?.attendanceData?.status,
   }));
 
+  const totalStudends = await SchoolData.find({school_code: req?.currentUser?.school_code,
+        section,
+        class: req?.currentUser?.class,})
+
   return res.status(StatusCodes.OK).json({
     message: 'Filtered school data retrieved successfully',
     data: newData,
+    totalStudends: totalStudends.length,
   });
 });
 
@@ -417,7 +422,7 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
   excelRows.push({ '*** फीडबैक रिपोर्ट ***': '' });
 
   // ✅ 3. Feedback Table with Hindi Questions as Headers
-  const feedback = schoolData.find(s => s.feedback)?.feedback;
+  const feedback = schoolData.find((s) => s.feedback)?.feedback;
 
   if (feedback) {
     excelRows.push({
@@ -428,7 +433,7 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
       '5. अतिरिक्त फीडबैक': feedback.additionalFeedback || '',
     });
   } else {
-    excelRows.push({ 'फीडबैक': 'उपलब्ध नहीं है' });
+    excelRows.push({ फीडबैक: 'उपलब्ध नहीं है' });
   }
 
   // ✅ Create Excel workbook
@@ -445,8 +450,6 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
   res.status(StatusCodes.OK).json({ downloadUrl: fileUrl });
 });
 
-
-
 export const DashboardData = AsyncHandler(async (req, res) => {
   const TotalSchool = await SchoolData.find({});
   const TotalUser = await UserModel.find({ role: { $ne: 'Admin' } }).countDocuments();
@@ -456,7 +459,7 @@ export const DashboardData = AsyncHandler(async (req, res) => {
       $gte: new Date(new Date().setHours(0, 0, 0, 0)),
       $lte: new Date(new Date().setHours(23, 59, 59, 999)),
     },
-  }).countDocuments();  
+  }).countDocuments();
 
   const totalSchool = [];
   const obj = {};
