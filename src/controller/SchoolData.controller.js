@@ -311,9 +311,14 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     status: item?.attendanceData?.status,
   }));
 
+  const totalStudends = await SchoolData.find({school_code: req?.currentUser?.school_code,
+        section,
+        class: req?.currentUser?.class,})
+
   return res.status(StatusCodes.OK).json({
     message: 'Filtered school data retrieved successfully',
     data: newData,
+    totalStudends: totalStudends.length,
   });
 });
 
