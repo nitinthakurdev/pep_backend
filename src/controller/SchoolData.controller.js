@@ -19,13 +19,12 @@ export const CreateSchoolData = AsyncHandler(async (req, res) => {
   // Read the Excel file buffer
   const jsonData = ExcelToJsonConverter(ExcelFile.path);
 
-  const result = await SchoolData.create(jsonData);
+   await SchoolData.create(jsonData);
 
   fs.unlinkSync(ExcelFile.path);
 
   return res.status(StatusCodes.CREATED).json({
     message: 'School data created successfully',
-    data: result,
   });
 });
 
@@ -311,9 +310,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     status: item?.attendanceData?.status,
   }));
 
-  const totalStudends = await SchoolData.find({school_code: req?.currentUser?.school_code,
-        section,
-        class: req?.currentUser?.class,})
+  const totalStudends = await SchoolData.find({ school_code: req?.currentUser?.school_code, section, class: req?.currentUser?.class });
 
   return res.status(StatusCodes.OK).json({
     message: 'Filtered school data retrieved successfully',

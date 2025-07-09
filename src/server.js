@@ -35,7 +35,7 @@ export function Start(app) {
 //     }
 
 function securityMiddleware(app) {
-  app.set('trust proxy', true);
+  app.set('trust proxy', 1);
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ limit: '10mb', extended: true }));
   app.use(cors());
