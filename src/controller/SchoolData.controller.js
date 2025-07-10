@@ -19,7 +19,7 @@ export const CreateSchoolData = AsyncHandler(async (req, res) => {
   // Read the Excel file buffer
   const jsonData = ExcelToJsonConverter(ExcelFile.path);
 
-   await SchoolData.create(jsonData);
+  await SchoolData.create(jsonData);
 
   fs.unlinkSync(ExcelFile.path);
 
@@ -307,7 +307,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     _id: item._id,
     student_name: item.student_name,
     father_name: item.father_name,
-    status: item?.attendanceData?.status,
+    status: item?.attendanceData?.status || 'not-marked',
   }));
 
   const totalStudends = await SchoolData.find({ school_code: req?.currentUser?.school_code, section, class: req?.currentUser?.class });
