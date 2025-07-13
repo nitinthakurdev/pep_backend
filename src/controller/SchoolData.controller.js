@@ -12,21 +12,45 @@ import { FeedBackModel } from '../Model/Feedback.js';
 
 export const CreateSchoolData = AsyncHandler(async (req, res) => {
   const ExcelFile = req.file;
+
   if (!ExcelFile) {
     throw new NotFoundError('Excel file not found', 'CreateSchoolData method ()');
   }
 
-  // Read the Excel file buffer
+  // Read Excel file buffer to JSON
   const jsonData = ExcelToJsonConverter(ExcelFile.path);
 
-  await SchoolData.create(jsonData);
+  try {
+    const result = await SchoolData.insertMany(jsonData, { ordered: false });
 
-  fs.unlinkSync(ExcelFile.path);
+    fs.unlinkSync(ExcelFile.path);
 
-  return res.status(StatusCodes.CREATED).json({
-    message: 'School data created successfully',
-  });
+    return res.status(StatusCodes.CREATED).json({
+      message: 'School data created successfully',
+      inserted: result.length,
+      skipped: jsonData.length - result.length,
+    });
+
+  } catch (error) {
+    // Handle duplicate SRN errors
+    if (error.writeErrors) {
+      const inserted = error.result?.nInserted || 0;
+      const skipped = error.writeErrors.length;
+
+      fs.unlinkSync(ExcelFile.path);
+
+      return res.status(StatusCodes.CREATED).json({
+        message: 'Some records were skipped due to duplicates! and Data Added',
+        inserted,
+        skipped
+      });
+    }
+
+    fs.unlinkSync(ExcelFile.path);
+    throw error; // Unknown error
+  }
 });
+
 
 export const GetSchoolData = AsyncHandler(async (req, res) => {
   const { page, limit } = req.query;

@@ -6,17 +6,8 @@ const schoolDataSchema = new Schema({
   class: { type: String },
   section: { type: String },
   student_name: { type: String },
-  srn: { type: String },
-  dob: { type: String },
-  gender: { type: String },
-  nationality: { type: String },
-  country: { type: String },
-  state: { type: String },
-  father_title: { type: String },
+  SRN: { type: String, unique: true},
   father_name: { type: String },
-  mother_title: { type: String },
-  mother_name: { type: String },
-  mobile: { type: String },
 });
 
 export const SchoolData = model('SchoolData', schoolDataSchema);

@@ -7,7 +7,7 @@ import UserRoutes from './routes/User.routes.js';
 import { Autherization } from './middleware/Authentication.js';
 import AttendanceRoutes from './routes/Attendance.routes.js';
 import FeedBackRouter from './routes/FeedBack.routes.js';
-import CancelationRoutes from "./routes/Cancelation.routes.js";
+import CancelationRoutes from './routes/Cancelation.routes.js';
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -19,7 +19,7 @@ const limiter = rateLimit({
 
 const router = Router();
 
-router.use('/school-data', Autherization, SchoolData);
+router.use('/school-data',  SchoolData);
 router.use('/user', limiter, UserRoutes);
 router.use('/attendance', Autherization, AttendanceRoutes);
 router.use('/feedback', Autherization, FeedBackRouter);
