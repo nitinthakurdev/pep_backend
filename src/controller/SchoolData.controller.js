@@ -295,13 +295,36 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
       },
     },
     {
+      $lookup: {
+        from: 'feedbacks',
+        localField: 'school_code',
+        foreignField: 'school_code',
+        as: 'feedback',
+        pipeline: [
+          {
+            $match: {
+              school_code: req?.currentUser?.school_code,
+              class: req?.currentUser?.class,
+              section,
+              createdAt: {
+                $gte: startOfToday,
+                $lte: endOfToday,
+              },
+            },
+          },
+        ],
+      },
+    },
+    {
       $addFields: {
         attendanceData: { $arrayElemAt: ['$attendanceData', 0] },
+        feedback: { $arrayElemAt: ['$feedback', 0] },
       },
     },
   ])
     .sort({ _id: -1 })
     .limit(limits);
+
 
   const newData = schoolData.map((item) => ({
     _id: item._id,
@@ -316,6 +339,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     message: 'Filtered school data retrieved successfully',
     data: newData,
     totalStudends: totalStudends.length,
+    alreadySubmited: schoolData[0]?.feedback?.feedback ? true : false,
   });
 });
 
