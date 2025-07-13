@@ -11,4 +11,3 @@ export const MarkAttendance = AsyncHandler(async (req, res) => {
     message: 'Attendance marked successfully',
   });
 });
-
