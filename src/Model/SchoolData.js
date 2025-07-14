@@ -6,7 +6,7 @@ const schoolDataSchema = new Schema({
   class: { type: String },
   section: { type: String },
   student_name: { type: String },
-  SRN: { type: String, unique: true},
+  SRN: { type: String, unique: true },
   father_name: { type: String },
 });
 

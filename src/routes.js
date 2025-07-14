@@ -19,7 +19,7 @@ const limiter = rateLimit({
 
 const router = Router();
 
-router.use('/school-data',  SchoolData);
+router.use('/school-data', SchoolData);
 router.use('/user', limiter, UserRoutes);
 router.use('/attendance', Autherization, AttendanceRoutes);
 router.use('/feedback', Autherization, FeedBackRouter);

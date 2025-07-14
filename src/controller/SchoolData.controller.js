@@ -30,7 +30,6 @@ export const CreateSchoolData = AsyncHandler(async (req, res) => {
       inserted: result.length,
       skipped: jsonData.length - result.length,
     });
-
   } catch (error) {
     // Handle duplicate SRN errors
     if (error.writeErrors) {
@@ -42,7 +41,7 @@ export const CreateSchoolData = AsyncHandler(async (req, res) => {
       return res.status(StatusCodes.CREATED).json({
         message: 'Some records were skipped due to duplicates! and Data Added',
         inserted,
-        skipped
+        skipped,
       });
     }
 
@@ -50,7 +49,6 @@ export const CreateSchoolData = AsyncHandler(async (req, res) => {
     throw error; // Unknown error
   }
 });
-
 
 export const GetSchoolData = AsyncHandler(async (req, res) => {
   const { page, limit } = req.query;
@@ -290,7 +288,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
       $match: {
         school_code: req?.currentUser?.school_code,
         section,
-        class: req?.currentUser?.class,
+        class: "9",
       },
     },
     {
@@ -348,7 +346,6 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
   ])
     .sort({ _id: -1 })
     .limit(limits);
-
 
   const newData = schoolData.map((item) => ({
     _id: item._id,
