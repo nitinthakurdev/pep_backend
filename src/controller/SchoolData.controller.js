@@ -259,21 +259,10 @@ export const getSchoolCodeAndClass = AsyncHandler(async (req, res) => {
   });
 });
 
-export const GetSchoolSections = AsyncHandler(async (req, res) => {
-  const data = await SchoolData.find({ $and: [{ school_code: req?.currentUser?.school_code }, { class: req?.currentUser?.class }] });
-  const sectionSet = new Set();
-  for (const item of data) {
-    if (item.section) sectionSet.add(item.section);
-  }
-  const section_arr = Array.from(sectionSet).sort();
-  return res.status(StatusCodes.OK).json({
-    message: 'school Section data',
-    data: section_arr,
-  });
-});
-
 export const FilterDataForSchool = AsyncHandler(async (req, res) => {
-  const { section, page, limit } = req.query;
+  const { page, limit } = req.query;
+  const { section, class: std_class } = req.body;
+
   const pages = parseInt(page) || 1;
   const limits = (parseInt(limit) || 20) * pages;
 
@@ -288,7 +277,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
       $match: {
         school_code: req?.currentUser?.school_code,
         section,
-        class: '9',
+        class: std_class
       },
     },
     {
@@ -326,7 +315,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
           {
             $match: {
               school_code: req?.currentUser?.school_code,
-              class: req?.currentUser?.class,
+              class:std_class,
               section,
               createdAt: {
                 $gte: startOfToday,
@@ -354,7 +343,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
     status: item?.attendanceData?.status || 'not-marked',
   }));
 
-  const totalStudends = await SchoolData.find({ school_code: req?.currentUser?.school_code, section, class: req?.currentUser?.class });
+  const totalStudends = await SchoolData.find({ school_code: req?.currentUser?.school_code, class: std_class, section });
 
   return res.status(StatusCodes.OK).json({
     message: 'Filtered school data retrieved successfully',

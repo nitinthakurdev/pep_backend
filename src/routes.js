@@ -19,7 +19,7 @@ import CancelationRoutes from './routes/Cancelation.routes.js';
 
 const router = Router();
 
-router.use('/school-data', SchoolData);
+router.use('/school-data', Autherization, SchoolData);
 router.use('/user', UserRoutes);
 router.use('/attendance', Autherization, AttendanceRoutes);
 router.use('/feedback', Autherization, FeedBackRouter);
