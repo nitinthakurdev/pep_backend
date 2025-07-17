@@ -288,7 +288,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
       $match: {
         school_code: req?.currentUser?.school_code,
         section,
-        class: "9",
+        class: '9',
       },
     },
     {

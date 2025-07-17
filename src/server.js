@@ -11,6 +11,7 @@ import express from 'express';
 import { CustomError, NotFoundPageError } from './utils/CustomError.js';
 import { DBConnection } from './connections/MongoDb.connection.js';
 import MainRouter from './routes.js';
+import { startUserDataJob } from './jobs/GetUserData.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +25,7 @@ export function Start(app) {
   ErrorHandle(app);
   StartServer(app);
   Connections();
+  jobsHandler();
 }
 
 // cors configration
@@ -71,6 +73,10 @@ function ErrorHandle(app) {
     }
     next();
   });
+}
+
+function jobsHandler() {
+  startUserDataJob();
 }
 
 function Connections() {

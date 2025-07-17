@@ -1,3 +1,4 @@
+import { getUserData } from '../jobs/GetUserData.js';
 import { UserModel } from '../Model/UserModel.js';
 
 export const createUser = async (data) => {
@@ -6,7 +7,12 @@ export const createUser = async (data) => {
 };
 
 export const FindByUsername = async (username) => {
-  const data = await UserModel.findOne({ username }).exec();
+  let data;
+  data = getUserData().find((user) => user.username === username);
+  if (!data) {
+    data = await UserModel.findOne({ username }).exec();
+  }
+
   return data;
 };
 
@@ -19,3 +25,4 @@ export const FindDataById = async (id) => {
   const data = await UserModel.findById(id).select('-password -refresh_token');
   return data;
 };
+
