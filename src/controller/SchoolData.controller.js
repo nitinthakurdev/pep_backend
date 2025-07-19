@@ -277,7 +277,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
       $match: {
         school_code: req?.currentUser?.school_code,
         section,
-        class: std_class
+        class: std_class,
       },
     },
     {
@@ -315,7 +315,7 @@ export const FilterDataForSchool = AsyncHandler(async (req, res) => {
           {
             $match: {
               school_code: req?.currentUser?.school_code,
-              class:std_class,
+              class: std_class,
               section,
               createdAt: {
                 $gte: startOfToday,

@@ -8,7 +8,7 @@ export const createUser = async (data) => {
 
 export const FindByUsername = async (username) => {
   let data;
-  data = getUserData().find((user) => user.username === username);
+  data = getUserData(username);
   if (!data) {
     data = await UserModel.findOne({ username }).exec();
   }
@@ -25,4 +25,3 @@ export const FindDataById = async (id) => {
   const data = await UserModel.findById(id).select('-password -refresh_token');
   return data;
 };
-
