@@ -19,14 +19,8 @@ async function FetchUserData() {
     const data = await UserModel.find({});
     const newMap = new Map();
 
-    data.forEach(user => {
-      newMap.set(user.username.toString(), {
-        _id: user._id ,
-        username: user.username,
-        password: user.password,
-        role:user.role
-        // Add more fields if needed
-      });
+    data.forEach((user) => {
+      newMap.set(user.username.toString(), user);
     });
 
     UserData = newMap; // Replace old map with new one
@@ -36,5 +30,5 @@ async function FetchUserData() {
 }
 
 export function getUserData(username) {
-  return UserData.get(username)
+  return UserData.get(username);
 }
