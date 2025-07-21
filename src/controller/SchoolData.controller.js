@@ -232,19 +232,19 @@ export const getSchoolCodeAndClass = AsyncHandler(async (req, res) => {
     {
       $group: {
         _id: {
-          school: "$school_code",
-          class: "$class",
+          school: '$school_code',
+          class: '$class',
         },
-        sections: { $addToSet: "$section" },
+        sections: { $addToSet: '$section' },
       },
     },
     {
       $group: {
-        _id: "$_id.school",
+        _id: '$_id.school',
         classes: {
           $push: {
-            k: "$_id.class",
-            v: { $sortArray: { input: "$sections", sortBy: 1 } },
+            k: '$_id.class',
+            v: { $sortArray: { input: '$sections', sortBy: 1 } },
           },
         },
       },
@@ -252,9 +252,9 @@ export const getSchoolCodeAndClass = AsyncHandler(async (req, res) => {
     {
       $project: {
         _id: 0,
-        school_code: "$_id",
+        school_code: '$_id',
         classSections: {
-          $arrayToObject: "$classes",
+          $arrayToObject: '$classes',
         },
       },
     },
@@ -266,11 +266,10 @@ export const getSchoolCodeAndClass = AsyncHandler(async (req, res) => {
   }
 
   return res.status(StatusCodes.OK).json({
-    message: "School-wise class and section data retrieved successfully",
+    message: 'School-wise class and section data retrieved successfully',
     data,
   });
 });
-
 
 export const FilterDataForSchool = AsyncHandler(async (req, res) => {
   const { page, limit } = req.query;
@@ -495,30 +494,26 @@ export const DownloadSchoolData = AsyncHandler(async (req, res) => {
 });
 
 export const DashboardData = AsyncHandler(async (req, res) => {
-  const TotalSchool = await SchoolData.find({});
-  const TotalUser = await UserModel.find({ role: { $ne: 'Admin' } }).countDocuments();
-  const TotalReport = await FeedBackModel.countDocuments();
-  const TodayReport = await FeedBackModel.find({
-    createdAt: {
-      $gte: new Date(new Date().setHours(0, 0, 0, 0)),
-      $lte: new Date(new Date().setHours(23, 59, 59, 999)),
-    },
-  }).countDocuments();
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
 
-  const totalSchool = [];
-  const obj = {};
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
 
-  for (let item of TotalSchool) {
-    if (!obj[item.school_code]) {
-      obj[item.school_code] = true;
-      totalSchool.push(item.school_code);
-    }
-  }
+  const [uniqueSchoolCodes, TotalUser, TotalReport, TodayReport] = await Promise.all([
+    SchoolData.distinct("school_code"),
+    UserModel.countDocuments({ role: { $ne: "Admin" } }),
+    FeedBackModel.countDocuments(),
+    FeedBackModel.countDocuments({
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+    }),
+  ]);
 
   return res.status(StatusCodes.OK).json({
-    totalSchool: totalSchool.length,
+    totalSchool: uniqueSchoolCodes.length,
     TotalUser,
     TodayReport,
     TotalReport,
   });
 });
+
