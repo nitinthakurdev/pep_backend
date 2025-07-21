@@ -221,43 +221,56 @@ export const FilterSchoolData = AsyncHandler(async (req, res) => {
 });
 
 export const getSchoolCodeAndClass = AsyncHandler(async (req, res) => {
-  const schoolData = await SchoolData.find();
+  const schoolClassData = await SchoolData.aggregate([
+    {
+      $match: {
+        school_code: { $ne: null },
+        class: { $ne: null },
+        section: { $ne: null },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          school: "$school_code",
+          class: "$class",
+        },
+        sections: { $addToSet: "$section" },
+      },
+    },
+    {
+      $group: {
+        _id: "$_id.school",
+        classes: {
+          $push: {
+            k: "$_id.class",
+            v: { $sortArray: { input: "$sections", sortBy: 1 } },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        school_code: "$_id",
+        classSections: {
+          $arrayToObject: "$classes",
+        },
+      },
+    },
+  ]);
 
-  const result = {};
-
-  for (const item of schoolData) {
-    const schoolCode = item.school_code;
-    const className = item.class;
-    const sectionName = item.section;
-
-    if (!schoolCode || !className || !sectionName) continue;
-
-    if (!result[schoolCode]) {
-      result[schoolCode] = {};
-    }
-
-    if (!result[schoolCode][className]) {
-      result[schoolCode][className] = new Set();
-    }
-
-    result[schoolCode][className].add(sectionName);
-  }
-
-  // Convert Sets to Arrays for JSON response
-  const formattedResult = {};
-
-  for (const school in result) {
-    formattedResult[school] = {};
-    for (const cls in result[school]) {
-      formattedResult[school][cls] = Array.from(result[school][cls]).sort();
-    }
+  const data = {};
+  for (const entry of schoolClassData) {
+    data[entry.school_code] = entry.classSections;
   }
 
   return res.status(StatusCodes.OK).json({
-    message: 'School-wise class and section data retrieved successfully',
-    data: formattedResult,
+    message: "School-wise class and section data retrieved successfully",
+    data,
   });
 });
+
 
 export const FilterDataForSchool = AsyncHandler(async (req, res) => {
   const { page, limit } = req.query;
