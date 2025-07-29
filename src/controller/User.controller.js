@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 // local imports
 import { createUser, FindByIdAndUpdate, FindByUsername, FindDataById } from '../services/User.services.js';
 import { AsyncHandler } from '../utils/AsyncHandler.js';
-import { NotFoundError } from '../utils/CustomError.js';
+import { BadRequestError, NotFoundError } from '../utils/CustomError.js';
 import { SignToken } from '../utils/JWTHandler.js';
 
 export const TokensGenerater = (payload, type) => {
@@ -63,4 +63,22 @@ export const LogedInUser = AsyncHandler(async (req, res) => {
   return res.status(StatusCodes.OK).json({
     data,
   });
+});
+
+export const ChangePassword = AsyncHandler(async (req,res) => {
+  const {oldPassword,newPassword} = req.body;
+  const user = req?.currentUser;
+  if(!user){
+    throw new NotFoundError("user not found","ChangePassword method ()");
+  }
+
+  const isCurrectPassword = bcrypt.compareSync(oldPassword,user?.password);
+  if(!isCurrectPassword){
+    throw new BadRequestError("Password does not match","ChangePassword method ()");
+  }
+
+  await FindByIdAndUpdate(user._id,{password:newPassword});
+  return res.status(StatusCodes.OK).json({
+    message:"User password updated successful"
+  })
 });
