@@ -9,6 +9,13 @@ const UserSchema = new Schema({
   profile: { type: String },
   refresh_token: { type: String },
   role: { type: String, required: true, enum: ['User', 'School', 'Admin'] },
+  name:{type:String,trim:true,},
+  email:{type:String,unique:true},
+  phone:{type:String},
+  city:{type:String},
+  state:{type:String},
+  language:{type:String,enum:["English","Hindi"]},
+  alt_phone:{type:String}
 });
 
 UserSchema.pre('save', async function (next) {
